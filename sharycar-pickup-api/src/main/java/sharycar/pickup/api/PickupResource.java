@@ -12,12 +12,14 @@ import javax.ws.rs.core.Response;
 import java.util.Date;
 import java.util.List;
 
+import com.kumuluz.ee.logs.cdi.Log;
 import sharycar.pickup.persistence.Pickup;
 
 @Path("/pickups")
 @RequestScoped
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Log
 public class PickupResource {
 
     @PersistenceContext
