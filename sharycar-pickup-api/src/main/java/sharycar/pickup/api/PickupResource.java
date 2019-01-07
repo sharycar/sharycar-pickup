@@ -122,11 +122,15 @@ public class PickupResource {
         }
     }
 
+    /**
+     *
+     * @param pickup
+     * @return
+     */
     @POST
     @Path("/return")
     public Response createReturn(Pickup pickup) {
 
-        pickup.setReturnDateTime(new Date());
 
         if (pickup.getId() == null ) {
             return Response.status(Response.Status.BAD_REQUEST).build();
@@ -135,10 +139,13 @@ public class PickupResource {
         if (pickup.getReturnLocation() == null || pickup.getReturnLocation().isEmpty()) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         } else {
-            // Create record in database
+            // Update record in database
             try {
                 em.getTransaction().begin();
-                em.merge(pickup); //@TODO:make sure this updates previous record
+                Pickup pick = em.getReference(Pickup.class, pickup.getId());
+                pick.setReturnLocation(pickup.getReturnLocation());
+                pick.setReturnDateTime(new Date());
+                em.merge(pick);
                 em.getTransaction().commit();
             } catch (Exception e) {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(pickup).build();
