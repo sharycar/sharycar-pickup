@@ -14,9 +14,19 @@ public class Pickup {
 
     private String pickUpLocation;
 
+    private Integer user_id;
+
     private String returnLocation;
 
     private Integer car_id;
+
+    public Integer getUser_id() {
+        return user_id;
+    }
+
+    public void setUser_id(Integer user_id) {
+        this.user_id = user_id;
+    }
 
     public Integer getCar_id() {
         return car_id;

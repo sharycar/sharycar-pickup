@@ -2,18 +2,26 @@ package sharycar.pickup.api;
 
 
 import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.ws.rs.*;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.Date;
 import java.util.List;
 
+import com.kumuluz.ee.discovery.annotations.DiscoverService;
 import com.kumuluz.ee.logs.cdi.Log;
 import sharycar.pickup.persistence.Pickup;
+import sharycar.pickup.persistence.Payment;
+
 
 @Path("/pickups")
 @RequestScoped
@@ -22,8 +30,16 @@ import sharycar.pickup.persistence.Pickup;
 @Log
 public class PickupResource {
 
+
+    @Inject
+    @DiscoverService(value = "payment-service", version = "1.0.x", environment = "dev")
+    private WebTarget target;
+
+
+
     @PersistenceContext
     private EntityManager em;
+
 
 
     /**
@@ -151,6 +167,29 @@ public class PickupResource {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(pickup).build();
             }
         }
+
+        Client client = ClientBuilder.newClient();
+        //  WebTarget paymentService = client.target("http://104.197.143.157:8080");
+        WebTarget paymentService = target;
+        // Execute reservation on credit card
+        paymentService = paymentService.path("payments/add");
+
+
+
+        Response response;
+
+        Payment p = new Payment();
+        p.setUser_id(pickup.getUser_id());
+        p.setPrice(Math.random() * 10);
+        p.setCurrency("USD");
+        p.setOrderId(pickup.getId());
+
+        try {
+            response = paymentService.request().post(Entity.json(p));
+        } catch (ProcessingException e) {
+            return Response.ok("Error service call message: "+"( "+paymentService.getUri()+")"+"ERRmsg"+ e.getMessage()+ e.getStackTrace()).build();
+        }
+
 
         if (pickup.getId() != null) {
             return Response.status(Response.Status.ACCEPTED).entity(pickup).build();
